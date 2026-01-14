@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.fintech.jbanking.modules.account.dto.request.AccountCreateRequest;
+import com.fintech.jbanking.modules.account.dto.response.AccountBalanceResponse;
 import com.fintech.jbanking.modules.account.dto.response.AccountResponse;
 import com.fintech.jbanking.modules.account.entity.Account;
 import com.fintech.jbanking.modules.account.repository.AccountRepository;
@@ -51,6 +52,7 @@ public class AccountService {
         return accNum;
     }
 
+    // Get all accounts
     public List<AccountResponse> getAllAccounts() {
         return accountRepository.findAll()
                 .stream()
@@ -64,8 +66,23 @@ public class AccountService {
                 .accountNumber(account.getAccountNumber())
                 .ownerName(account.getOwnerName())
                 .balance(account.getBalance())
+                .currency(account.getCurrency())
                 .status(account.getStatus())
                 .createdAt(account.getCreatedAt())
                 .build();
+    }
+
+    // Get account by account number
+    public AccountResponse getAccountByAccountNumber(String accountNumber) {
+        return accountRepository.findAccountByAccountNumber(accountNumber)
+                .map(this::mapToAccountResponse)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+    }
+
+    public AccountBalanceResponse getAccountBalance(String accountNumber) {
+        Account account = accountRepository.findAccountByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        return new AccountBalanceResponse(account.getBalance(), account.getCurrency());
     }
 }

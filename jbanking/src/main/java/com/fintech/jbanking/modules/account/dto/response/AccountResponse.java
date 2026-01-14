@@ -10,10 +10,11 @@ import lombok.Builder;
 
 @Builder
 public record AccountResponse(
-        Long id,
-        String accountNumber,
-        String ownerName,
-        BigDecimal balance,
-        String status,
-        Instant createdAt) {
+                Long id,
+                String accountNumber,
+                String ownerName,
+                BigDecimal balance,
+                String currency,
+                String status,
+                Instant createdAt) {
 }
