@@ -24,25 +24,27 @@ The system currently operates as a self-contained unit exposing RESTful APIs, ba
 
 [![](https://mermaid.ink/img/pako:eNplUdFugjAU_ZXmPm0JGiEowsMS0S1zwcRN9jLwodIrEqElBbI59d9XRNjM7ktvT8-557Q9QiQYggOxpPmO-LOQE1XvBcpgmibIS7IQmyRFMsnzNen1Hk7Pvr9ckbfHlX8inht4gjLi0pTyCOW6kXvuhfkk5CeV7FRrgxdF4vuEx2QqJCpiQy2qTWM95yVKTtOFYFWKRXNa15ypFEl5CNqGNJT1L2USRaLiZXBdiYcsRvmf50vKi626WtvcUpCzNpZKXF-hM79Frz63YDuzHdHFrQ9nbnC3FEUZS1y9evdXwzZvw2iwLloLgqY-J2HglLJCDTKUGa23cKwFIZQ7zDAER7WMyn0IIT8rTU75hxBZK5OiinfgbGlaqF2VM1riLKHq7bMOleoBUE7rSOCY9vAyBJwjfIGjj-2-pevm2LDt0cAw7bEGB3B6ltXXx9bQGNn60LIM0zxr8H3xHfQVPvhT-vkHjIrAsg?type=png)](https://mermaid.live/edit#pako:eNplUdFugjAU_ZXmPm0JGiEowsMS0S1zwcRN9jLwodIrEqElBbI59d9XRNjM7ktvT8-557Q9QiQYggOxpPmO-LOQE1XvBcpgmibIS7IQmyRFMsnzNen1Hk7Pvr9ckbfHlX8inht4gjLi0pTyCOW6kXvuhfkk5CeV7FRrgxdF4vuEx2QqJCpiQy2qTWM95yVKTtOFYFWKRXNa15ypFEl5CNqGNJT1L2USRaLiZXBdiYcsRvmf50vKi626WtvcUpCzNpZKXF-hM79Frz63YDuzHdHFrQ9nbnC3FEUZS1y9evdXwzZvw2iwLloLgqY-J2HglLJCDTKUGa23cKwFIZQ7zDAER7WMyn0IIT8rTU75hxBZK5OiinfgbGlaqF2VM1riLKHq7bMOleoBUE7rSOCY9vAyBJwjfIGjj-2-pevm2LDt0cAw7bEGB3B6ltXXx9bQGNn60LIM0zxr8H3xHfQVPvhT-vkHjIrAsg)
 
-### 2.2 Project Structure (Package by Feature)
+### 2.2 Project Structure (Modular Layered Architecture)
 
-Unlike traditional Layered Architecture (Controller/Service/Repo), this project uses a **Package-by-Feature** approach to enforce modular boundaries.
+This project adopts a **Modular Monolith** architecture. The code is primarily organized by **Business Domain** (Feature) to enforce logical boundaries. Within each module, we retain the standard **Layered Architecture** (Controller, Service, Repository) to maintain separation of concerns and developer familiarity.
 
-```
+```text
 com.fintech.jbanking
 ├── common              # Shared kernel (Utils, BaseEntities, Global Exceptions)
 ├── config              # Global configurations (Security, Swagger, Audit)
 ├── modules             # Distinct Business Domains
-│   ├── identity        # Customer Management & Authentication
-│   │   ├── api         # REST Controllers
-│   │   ├── core        # Services & Domain Logic
-│   │   └── data        # Repositories & Entities
-│   ├── account         # General Ledger & Balance Management
-│   └── transaction     # Money Movement Logic & Audit Logs
+│   ├── account         # [Module 1] General Ledger & Balance Management
+│   │   ├── controller  # Handling REST Requests
+│   │   ├── service     # Business Logic & Transaction Management
+│   │   ├── repository  # Data Access Layer (JPA)
+│   │   ├── entity      # Database Models
+│   │   └── dto         # Data Transfer Objects (Records)
+│   │
+│   └── transaction     # [Module 2] Money Movement Logic (Planned)
+│       ├── controller
+│       ├── ...
 └── JBankingApplication.java
-
 ```
-
 * * * * *
 
 3\. Diagrams
@@ -134,11 +136,21 @@ Floating-point arithmetic (float/double) is strictly forbidden.
 
 We chose Modular Monolith over Microservices for the initial phase to:
 
-1.  Reduce operational complexity (No network latency, simplified deployment).
+1.  **Reduce operational complexity:** No network latency, simplified deployment.
 
-2.  Refactor easily (IDE support) before boundaries are solidified.
+2.  **Refactor easily:** Code boundaries are logical, allowing easy refactoring in IDE.
 
 3.  **Future Proofing:** Code is organized such that extracting `Account Module` to a separate service requires minimal effort.
+
+### 6.4 Database Selection (Why PostgreSQL?)
+
+We prioritized **Data Integrity** over read-speed, which is why we chose PostgreSQL over MySQL.
+
+-   **Strict ACID:** Unlike MySQL (which can be lenient with data truncation), PostgreSQL enforces strict type checking and constraint adherence, essential for banking ledgers.
+
+-   **Arbitrary Precision:** Superior support for `DECIMAL`/`NUMERIC` types ensuring zero rounding errors in financial calculations.
+
+-   **Concurrency:** Its MVCC (Multi-Version Concurrency Control) model is superior for high-throughput financial transactions where readers must not block writers.
 
 * * * * *
 
@@ -147,7 +159,7 @@ We chose Modular Monolith over Microservices for the initial phase to:
 
 ### Prerequisites
 
--   Java JDK 21
+-   Java JDK 25
 
 -   Maven 3.x
 

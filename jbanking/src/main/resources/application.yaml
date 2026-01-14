@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: jbanking-monolith
+
+  # Cấu hình Database (PostgreSQL)
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jbanking_db
+    username: postgres
+    # Thay password của bạn vào đây
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+
+  # Cấu hình JPA / Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: update # Tự động cập nhật bảng (Chỉ dùng cho Dev)
+    show-sql: true     # Hiện câu SQL trong log để debug
+    properties:
+      hibernate:
+        format_sql: true # Format SQL cho đẹp
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Kích hoạt Virtual Threads (Java 21+) -> Hiệu năng cao
+  threads:
+    virtual:
+      enabled: true
+
+# Cấu hình Server (Optional)
+server:
+  port: 8081
