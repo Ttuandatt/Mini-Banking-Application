@@ -2,15 +2,18 @@ package com.fintech.jbanking.modules.account.controller;
 
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fintech.jbanking.modules.account.dto.request.AccountCreateRequest;
+import com.fintech.jbanking.modules.account.dto.request.AccountUpdateRequest;
 import com.fintech.jbanking.modules.account.dto.response.AccountBalanceResponse;
 import com.fintech.jbanking.modules.account.dto.response.AccountResponse;
 import com.fintech.jbanking.modules.account.dto.response.ApiResponse;
@@ -61,6 +64,25 @@ public class AccountController {
         return ApiResponse.<AccountBalanceResponse>builder()
                 .message("Current account balance")
                 .result(accountService.getAccountBalance(accountNumber))
+                .build();
+    }
+
+    // Update Account Status
+    @PatchMapping("/{accountNumber}/status")
+    public ApiResponse<AccountResponse> updateAccountStatus(@PathVariable String accountNumber,
+            @RequestBody AccountUpdateRequest request) {
+        return ApiResponse.<AccountResponse>builder()
+                .message("Account status updated successfully")
+                .result(accountService.updateAccountStatus(accountNumber, request.status()))
+                .build();
+    }
+
+    // Soft-delete (đóng tài khoản)
+    @DeleteMapping("/{accountNumber}")
+    public ApiResponse<AccountResponse> closeAccount(@PathVariable String accountNumber) {
+        return ApiResponse.<AccountResponse>builder()
+                .message("Account closed successfully")
+                .result(accountService.closeAccount(accountNumber))
                 .build();
     }
 

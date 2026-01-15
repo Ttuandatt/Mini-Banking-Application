@@ -10,6 +10,8 @@ import com.fintech.jbanking.modules.account.dto.request.AccountCreateRequest;
 import com.fintech.jbanking.modules.account.dto.response.AccountBalanceResponse;
 import com.fintech.jbanking.modules.account.dto.response.AccountResponse;
 import com.fintech.jbanking.modules.account.entity.Account;
+import com.fintech.jbanking.modules.account.exception.AppException;
+import com.fintech.jbanking.modules.account.exception.ErrorCode;
 import com.fintech.jbanking.modules.account.repository.AccountRepository;
 
 import jakarta.transaction.Transactional;
@@ -76,13 +78,40 @@ public class AccountService {
     public AccountResponse getAccountByAccountNumber(String accountNumber) {
         return accountRepository.findAccountByAccountNumber(accountNumber)
                 .map(this::mapToAccountResponse)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
 
     public AccountBalanceResponse getAccountBalance(String accountNumber) {
         Account account = accountRepository.findAccountByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
         return new AccountBalanceResponse(account.getBalance(), account.getCurrency());
+    }
+
+    // Cập nhật trạng thái
+    @Transactional
+    public AccountResponse updateAccountStatus(String accountNumber, String status) {
+        Account account = accountRepository.findAccountByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        // Không cho cập nhật nếu đã đóng
+        if (account.getStatus().equals("CLOSED")) {
+            throw new AppException(ErrorCode.ACCOUNT_CLOSED);
+        }
+
+        account.setStatus(status);
+
+        return mapToAccountResponse(accountRepository.save(account));
+    }
+
+    // Soft-delete (đóng tài khoản)
+    @Transactional
+    public AccountResponse closeAccount(String accountNumber) {
+        Account account = accountRepository.findAccountByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        account.setStatus("CLOSED");
+
+        return mapToAccountResponse(accountRepository.save(account));
     }
 }
